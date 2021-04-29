@@ -1,0 +1,13 @@
+.box{
+    border: black solid 2px;
+    margin-top: 20%;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+select {
+    padding: 5px;
+    margin: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(119, 119, 119, 0.5);
+  }
