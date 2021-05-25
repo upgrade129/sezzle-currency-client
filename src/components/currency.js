@@ -14,7 +14,9 @@ export default class Currency extends Component {
       fromCurrency: "USD",
       toCurrency: "GBP",
       amount: 1,
-      currencies: []
+      currencies: [],
+      fromId : "ALL",
+      toId : "ALL"
     };
     console.log("axios");
   }
@@ -22,31 +24,40 @@ export default class Currency extends Component {
     axios
       .get("http://localhost:4200/rates")
       .then(response => {
-        const currencyAr = ["EUR"];
-        for (const key in response.data.rates) {
-          currencyAr.push(key);
-        }
-        this.setState({ currencies: currencyAr });
+        console.log(response.data.results)
+        console.log(typeof(response.data.results))
+        // const currencyAr = [];
+        // for (const key in response.data.results) {
+        //   currencyAr.push(key)
+        // }
+        this.setState({ currencies: response.data.results });
       })
       .catch(err => {
         console.log("oppps", err);
       });
+
   }
   convertHandler = () => {
     if (this.state.fromCurrency !== this.state.toCurrency) {
       var details ={
         fromCurrency : this.state.fromCurrency,
-        toCurrency : this.state.toCurrency
+        toCurrency : this.state.toCurrency,
+        amount : this.state.amount,
+        fromId : this.state.fromId,
+        toId : this.state.toId
       }
       axios
         .post("http://localhost:4200/base",details)
         .then(response => {
-          const result =
-            this.state.amount * response.data.rates[this.state.toCurrency];
-          this.setState({ result: result.toFixed(5) });
+          console.log("base",response.data)
+          const result =response.data[Object.keys(response.data)[0]];
+          var res = [result]
+          var final = (res[0].val)*this.state.amount
+          console.log(final)
+          this.setState({ result: final});
         })
         .catch(error => {
-          console.log("Opps", error.message);
+          console.log("error on base", error.message);
         });
     } else {
       this.setState({ result: "You cant convert the same currency!" });
@@ -55,9 +66,21 @@ export default class Currency extends Component {
   selectHandler = event => {
     if (event.target.name === "from") {
       this.setState({ fromCurrency: event.target.value });
+      {Object.keys(this.state.currencies).map(i => {
+        if(this.state.currencies[i].currencyName == event.target.value){
+          console.log("from",this.state.currencies[i].id)
+          return this.setState({fromId : this.state.currencies[i].id})
+        }
+      })}
     } else {
       if (event.target.name === "to") {
         this.setState({ toCurrency: event.target.value });
+        {Object.keys(this.state.currencies).map(i => {
+          if(this.state.currencies[i].currencyName == event.target.value){
+            console.log("to",this.state.currencies[i].id)
+            return this.setState({toId : this.state.currencies[i].id})
+          }
+        })}
       }
     }
   };
@@ -81,26 +104,33 @@ export default class Currency extends Component {
             onChange={event => this.setState({ amount: event.target.value })}
             
           />
+          <div>
           From : 
+          <br/>
           <select
             name="from"
             onChange={event => this.selectHandler(event)}
             value={this.state.fromCurrency}
           >
-            {this.state.currencies.map(cur => (
-              <option key={cur}>{cur}</option>
+            {Object.keys(this.state.currencies).map(i => (
+              <option key={this.state.currencies[i].id}>{this.state.currencies[i].currencyName}</option>
             ))}
           </select>
+          </div>
+          <div>
           To :
+          <br/>
           <select
             name="to"
             onChange={event => this.selectHandler(event)}
             value={this.state.toCurrency}
           >
-            {this.state.currencies.map(cur => (
-              <option key={cur}>{cur}</option>
+            {Object.keys(this.state.currencies).map(i => (
+              <option key={this.state.currencies[i].id}>{this.state.currencies[i].currencyName}</option>
             ))}
           </select>
+          </div>
+
           <Button
             fullWidth
             variant="contained"
